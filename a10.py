@@ -114,7 +114,7 @@ def get_birth_date(name: str) -> str:
         birth date of the given person
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(name)))
-    pattern = r"(?:Born\D*)(?P<birth>\d{4}-\d{2}-\d{2})"
+    pattern = r"(?:Born|Date of birth.*)(?P<birth>\d{4}-\d{2}-\d{2})"
     error_text = (
         "Page infobox has no birth information (at least none in xxxx-xx-xx format)"
     )
@@ -122,6 +122,19 @@ def get_birth_date(name: str) -> str:
 
     return match.group("birth")
 
+def get_tornado_casualties(tornado_name: str) -> str:
+    """Gets casualties of the given tornado
+    
+    Args:
+        tornado_name - name of the tornado
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(tornado_name)))
+    pattern = r"(?:Fatalities)(?:.)(?P<casualties>\d+)"
+    error_text = (
+        "Page infobox has no information on the tornado"
+    )
+    match = get_match(infobox_text, pattern, error_text)
+    return match.group("casualties")
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
 # according to the action and the argument. It is important that each function returns a
@@ -150,6 +163,17 @@ def polar_radius(matches: List[str]) -> List[str]:
         polar radius of planet
     """
     return [get_polar_radius(matches[0])]
+
+def tornado_casualties(matches: List[str]) -> List[str]:
+    """Returns the casualties of tornado in matches
+    
+    Args:
+        matches - match from pattern of tornado to find casualties of
+
+    Returns:
+        casualties of tornado
+    """
+    return [get_tornado_casualties(matches[0])]
 
 
 # dummy argument is ignored and doesn't matter
