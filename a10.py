@@ -129,12 +129,28 @@ def get_tornado_casualties(tornado_name: str) -> str:
         tornado_name - name of the tornado
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(tornado_name)))
-    pattern = r"(?:Fatalities)(?:.)(?P<casualties>\d+)"
+    pattern = r"(?:Fatalities)(?P<casualties>\d+)"
     error_text = (
         "Page infobox has no information on the tornado"
     )
+    print(infobox_text)
     match = get_match(infobox_text, pattern, error_text)
     return match.group("casualties")
+
+def get_tornado_injuries(tornado_name: str) -> str:
+    """Gets injuries of the given tornado
+    
+    Args:
+        tornado_name - name of the tornado
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(tornado_name)))
+    pattern = r"(?:Injuries)(?P<injuries>[\d,]+)"
+    error_text = (
+        "Page infobox has no information on the tornado"
+    )
+    print(infobox_text)
+    match = get_match(infobox_text, pattern, error_text)
+    return match.group("injuries")
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
 # according to the action and the argument. It is important that each function returns a
@@ -175,6 +191,16 @@ def tornado_casualties(matches: List[str]) -> List[str]:
     """
     return [get_tornado_casualties(matches[0])]
 
+def tornado_injuries(matches: List[str]) -> List[str]:
+    """Returns the injuries of tornado in matches
+    
+    Args:
+        matches - match from pattern of tornado to find injuries of
+
+    Returns:
+        casualties of tornado
+    """
+    return [get_tornado_injuries(matches[0])]
 
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
@@ -191,6 +217,8 @@ Action = Callable[[List[str]], List[Any]]
 pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
+    ("how many people died in the %".split(), tornado_casualties),
+    ("how many people were injured in the %".split(), tornado_injuries),
     (["bye"], bye_action),
 ]
 
