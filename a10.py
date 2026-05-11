@@ -129,7 +129,7 @@ def get_tornado_casualties(tornado_name: str) -> str:
         tornado_name - name of the tornado
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(tornado_name)))
-    pattern = r"(?:Fatalities)(?P<casualties>\d+)"
+    pattern = r"(?:Fatalities)(?P<casualties>[\d, ]+|[\d,]+)"
     error_text = (
         "Page infobox has no information on the tornado"
     )
@@ -144,7 +144,7 @@ def get_tornado_injuries(tornado_name: str) -> str:
         tornado_name - name of the tornado
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(tornado_name)))
-    pattern = r"(?:Injuries)(?P<injuries>[\d,]+)"
+    pattern = r"(?:Injuries)(?P<injuries>[\d, ]+|\d+)"
     error_text = (
         "Page infobox has no information on the tornado"
     )
@@ -218,6 +218,7 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
     ("how many people died in the %".split(), tornado_casualties),
+    ("how many people died in %".split(), tornado_casualties), # Hurricanes/weather phenomena
     ("how many people were injured in the %".split(), tornado_injuries),
     (["bye"], bye_action),
 ]
