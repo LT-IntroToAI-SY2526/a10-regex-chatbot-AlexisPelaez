@@ -7,6 +7,17 @@ from typing import List, Callable, Tuple, Any, Match
 
 
 def get_page_html(title: str) -> str:
+    search_response = requests.get(
+        "https://en.wikipedia.org/w/api.php",
+        params={"action": "query", "list": "search", "srsearch": title, "format": "json"},
+        headers={"User-Agent": "intro-ai-class/1.0"},
+        timeout=10
+    )
+    results = search_response.json().get("query", {}).get("search", [])
+    if results:
+        title = results[0]["title"]  # use the top search result title
+        print(f"Searching Wikipedia for: {title}")
+    
     for attempt in range(5):
         response = requests.get(
             "https://en.wikipedia.org/w/api.php",
@@ -133,7 +144,7 @@ def get_tornado_casualties(tornado_name: str) -> str:
     error_text = (
         "Page infobox has no information on the tornado"
     )
-    print(infobox_text)
+    # print(infobox_text)
     match = get_match(infobox_text, pattern, error_text)
     return match.group("casualties")
 
@@ -144,11 +155,11 @@ def get_tornado_injuries(tornado_name: str) -> str:
         tornado_name - name of the tornado
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(tornado_name)))
-    pattern = r"((?:Injuries )|(?:Injuries))(?P<injuries>[\d, ]+|\d+)"
+    pattern = r"((?:Injuries )|(?:Injuries|(?:Missing)|(?:Missing )))(?P<injuries>[\d, ]+|\d+)"
     error_text = (
         "Page infobox has no information on the tornado"
     )
-    print(infobox_text)
+    # print(infobox_text)
     match = get_match(infobox_text, pattern, error_text)
     return match.group("injuries")
 
@@ -163,7 +174,7 @@ def get_tornado_highest_wind_speed(tornado_name: str) -> str:
     error_text = (
         "Page infobox has no information on the tornado"
     )
-    print(infobox_text)
+    # print(infobox_text)
     match = get_match(infobox_text, pattern, error_text)
     if match.group("hwindspeed"):
         return match.group("hwindspeed")
@@ -208,7 +219,7 @@ def tornado_casualties(matches: List[str]) -> List[str]:
     Returns:
         casualties of tornado
     """
-    return [get_tornado_casualties(matches[0])]
+    return [get_tornado_casualties(matches[0]) + " fatalities"]
 
 def tornado_injuries(matches: List[str]) -> List[str]:
     """Returns the injuries of tornado in matches
@@ -219,7 +230,7 @@ def tornado_injuries(matches: List[str]) -> List[str]:
     Returns:
         casualties of tornado
     """
-    return [get_tornado_injuries(matches[0])]
+    return [get_tornado_injuries(matches[0]) + " injured/missing"]
 
 def tornado_highest_wind_speed(matches: List[str]) -> List[str]:
     """Returns the highest wind speed of tornado in matches
@@ -230,7 +241,7 @@ def tornado_highest_wind_speed(matches: List[str]) -> List[str]:
     Returns:
         wind speed of tornado
     """
-    return [get_tornado_highest_wind_speed(matches[0])]
+    return [get_tornado_highest_wind_speed(matches[0]) + " mph"]
 
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
@@ -248,10 +259,8 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
     ("how many people died in the %".split(), tornado_casualties),
-    ("how many people died in %".split(), tornado_casualties), # Hurricanes/weather phenomena
     ("how many people were injured in the %".split(), tornado_injuries),
     ("what was the highest windspeed of the %".split(), tornado_highest_wind_speed),
-    ("what was the highest windspeed of %".split(), tornado_highest_wind_speed), # Hurricanes/weather phenomena
     (["bye"], bye_action),
 ]
 
